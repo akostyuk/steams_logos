@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -6,12 +8,17 @@ BASE_URL = 'http://www.sportslogos.net/'
 
 TEAMS_URLS = {
     'baseball': {
-        'AL': '/teams/list_by_league/53/American_League/AL/logos/',
-        'NL': '/teams/list_by_league/54/National_League/NL/logos/'
+        'AL': 'teams/list_by_league/53/American_League/AL/logos/',
+        'NL': 'teams/list_by_league/54/National_League/NL/logos/'
     },
     'basketball': {
-        'NBA': '/teams/list_by_league/6/'
+        'NBA': 'teams/list_by_league/6/'
         'National_Basketball_Association/NBA/logos/'
+    },
+    'hockey': {
+        'NHL': 'teams/list_by_league/1/'
+        'National_Hockey_League/NHL/logos/',
+        'KHL': 'teams/list_by_league/90/Kontinental_Hockey_League/KHL/logos/'
     }
 }
 
@@ -60,6 +67,7 @@ class Downloader(object):
                 raise HtmlParserError(
                     'Can not find team name in the logo link')
             name = name.strip().lower()
+            name = re.sub(' +', ' ', name)
             url = link.attrs.get('href')
             if not url.startswith(BASE_URL):
                 if url.startswith('/'):
@@ -132,9 +140,11 @@ class Downloader(object):
 
 
 def main():
-    d = Downloader('basketball', 'NBA', 'Boston Celtics')
+    d = Downloader('hockey', 'KHL', 'Ak Bars Kazan')
     team_link = d.find_team()
-    print d.league_teams
+    print d.get_team_logos(team_link)
+    # d._get_league_teams()
+    # print d.league_teams.keys()
 
 
 if __name__ == "__main__":
