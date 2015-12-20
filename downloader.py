@@ -3,24 +3,9 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+from teams import URLS as TEAMS_URLS
 
 BASE_URL = 'http://www.sportslogos.net/'
-
-TEAMS_URLS = {
-    'baseball': {
-        'AL': 'teams/list_by_league/53/American_League/AL/logos/',
-        'NL': 'teams/list_by_league/54/National_League/NL/logos/'
-    },
-    'basketball': {
-        'NBA': 'teams/list_by_league/6/'
-        'National_Basketball_Association/NBA/logos/'
-    },
-    'hockey': {
-        'NHL': 'teams/list_by_league/1/'
-        'National_Hockey_League/NHL/logos/',
-        'KHL': 'teams/list_by_league/90/Kontinental_Hockey_League/KHL/logos/'
-    }
-}
 
 
 class DownloadError(Exception):
@@ -50,8 +35,9 @@ class Downloader(object):
                 ', '.join(TEAMS_URLS.get(self.sport).keys())))
         self.league = league
         self.team_name = team_name
-        self.url = '{}{}'.format(BASE_URL,
-                                 TEAMS_URLS.get(self.sport).get(self.league))
+        self.url = '{}{}'.format(
+            BASE_URL,
+            TEAMS_URLS.get(self.sport).get(self.league).get('url'))
         self.league_teams = None
 
     def _parse_logos_wrapper(self, group):
