@@ -17,6 +17,7 @@ class HtmlParserError(Exception):
 
 
 class Downloader(object):
+
     def __init__(self, sport, league, team_name):
         for arg in [sport, league, team_name]:
             if not isinstance(arg, str):
@@ -39,6 +40,24 @@ class Downloader(object):
             BASE_URL,
             TEAMS_URLS.get(self.sport).get(self.league).get('url'))
         self.league_teams = None
+
+    def _get_page(self, url):
+        r = requests.get(url, stream=True)
+        if r.status_code != 200:
+            raise DownloadError('Filed to download "{}": "{}"'.format(
+                url, r.status_code))
+        return r.content
+
+    def _get_logo_groups(self, url=None):
+        if url is None:
+            url = self.url
+        page = self._get_page(url)
+        parser = BeautifulSoup(page, 'html.parser')
+        logos_groups = parser.findAll('ul', {'class': 'logoWall'})
+        if len(logos_groups) == 0:
+            raise HtmlParserError(
+                'Can not find logos list with "logoWall" class')
+        return logos_groups
 
     def _parse_logos_wrapper(self, group):
         logos = group.findAll('li')
@@ -63,20 +82,8 @@ class Downloader(object):
         return names
 
     def _get_league_teams(self):
-        page = self.get_page(self.url)
-        parser = BeautifulSoup(page, 'html.parser')
-        logos_ul = parser.find('ul', {'class': 'logoWall'})
-        if not logos_ul:
-            raise HtmlParserError(
-                'Can not find logos list with "logoWall" class')
-        self.league_teams = self._parse_logos_wrapper(logos_ul)
-
-    def get_page(self, url):
-        r = requests.get(url, stream=True)
-        if r.status_code != 200:
-            raise DownloadError('Filed to download "{}": "{}"'.format(
-                url, r.status_code))
-        return r.content
+        logos = self._get_logo_groups()
+        self.league_teams = self._parse_logos_wrapper(logos[0])
 
     def find_team(self, team_name=None):
         if team_name:
@@ -98,12 +105,7 @@ class Downloader(object):
         return team
 
     def get_team_logos(self, team_url):
-        page = self.get_page(team_url)
-        parser = BeautifulSoup(page, 'html.parser')
-        logos_groups = parser.findAll('ul', {'class': 'logoWall'})
-        if len(logos_groups) == 0:
-            raise HtmlParserError(
-                'Can not find logos list with "logoWall" class')
+        logos_groups = self._get_logo_groups(team_url)
         prim_logos = self._parse_logos_wrapper(logos_groups[0])
         try:
             alt_logos = self._parse_logos_wrapper(logos_groups[1])
@@ -112,7 +114,7 @@ class Downloader(object):
         return {'primary_logos': prim_logos, 'alternate_logos': alt_logos}
 
     def get_full_size_logo(self, url):
-        page = self.get_page(url)
+        page = self._get_page(url)
         parser = BeautifulSoup(page, 'html.parser')
         logo_wrapper = parser.find(id='mainLogo')
         if not logo_wrapper:
