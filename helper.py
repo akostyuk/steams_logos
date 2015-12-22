@@ -1,9 +1,21 @@
 import re
 
+import pprint
+
 from downloader import Downloader, BASE_URL, HtmlParserError
+from meta import REPLACES, EXCLUDES
 
 
 class ExtendedDownloader(Downloader):
+
+    def _extract_abbr(self, url):
+        names = url.split('/')
+        names = [x for x in names if x]
+        abbr = names[-2]
+        replaces = REPLACES.get(self.sport)
+        if abbr in replaces.keys():
+            abbr = replaces[abbr]
+        return abbr.upper()
 
     def _parse_logos_wrapper(self, group):
         logos = group.findAll('li')
@@ -32,10 +44,22 @@ class ExtendedDownloader(Downloader):
 
 
 def main():
-    d = ExtendedDownloader('hockey', 'NHL', 'test')
-    groups = d._get_logo_groups('http://www.sportslogos.net/leagues/list_by_sport/2/Baseball')
+    summary = {}
+    d = ExtendedDownloader('baseball', 'AL', 'test')
+    groups = d._get_logo_groups(
+        '{}leagues/list_by_sport/3/Basketball/logos'.format(BASE_URL))
+    excludes = EXCLUDES.get(d.sport)
     for g in groups:
-        print d._parse_logos_wrapper(g)
+        leagues = d._parse_logos_wrapper(g)
+        for name, url in leagues.iteritems():
+            if name in excludes:
+                continue
+            abbr = d._extract_abbr(url)
+            summary[abbr] = {
+                'description': name.title(),
+                'url': url.replace(BASE_URL, '')
+            }
+    pprint.pprint(summary, width=70)
 
 
 if __name__ == "__main__":
