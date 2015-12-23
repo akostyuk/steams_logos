@@ -9,7 +9,19 @@ REPLACES = {
     'basketball': {
         'NBA_D-League': 'NBADL',
         'NBL-Aus': 'NBLAUS',
-        'NBL_Canada': 'NBACA',
+        'NBL_Canada': 'NBACAN',
+    },
+    'hockey': {
+        'Sweden_SEL': 'SELSWE',
+        'Finnish_SMliiga': 'SMLIIGAFIN',
+        'Aus-HL': 'HLAUT',
+        'German_DEL': 'DELDEU',
+        'British_EIHL': 'EIHLGBR',
+        'Czech_ELH': 'ELHCZE',
+        'Mestis': 'MESTISFIN',
+        'Swiss_NLA': 'NLACHE',
+        'Russia_VHL': 'VHLRUS',
+        'Slovak_Ex-Liga': 'EXLSVK',
     }
 }
 
