@@ -22,6 +22,10 @@ REPLACES = {
         'Swiss_NLA': 'NLACHE',
         'Russia_VHL': 'VHLRUS',
         'Slovak_Ex-Liga': 'EXLSVK',
+    },
+    'football': {
+        'Arena_FL': 'FLARENA',
+        'LFL_Canada': 'LFLCAN',
     }
 }
 
