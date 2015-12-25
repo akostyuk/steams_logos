@@ -6,10 +6,11 @@ from downloader import Downloader, BASE_URL, HtmlParserError
 from meta import REPLACES, EXCLUDES
 
 SPORTS_URLS = {
-    'baseball': '',
-    'basketball': '',
-    'hockey': '',
-    'football': '',
+    'baseball': 'leagues/list_by_sport/2/Baseball/logos',
+    'basketball': 'leagues/list_by_sport/3/Basketball/logos',
+    'hockey': 'leagues/list_by_sport/1/Hockey/logos',
+    'football': 'leagues/list_by_sport/4/Football/logos',
+    'soccer': 'leagues/list_by_sport/5/Soccer/logos'
 }
 
 
