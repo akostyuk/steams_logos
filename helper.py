@@ -1,3 +1,9 @@
+# This is helper module with usefull functions
+#
+# - get_ligues() returns a disctionary with all available ligues for specific
+#   sport type
+#
+
 import re
 import pprint
 import argparse
@@ -15,6 +21,10 @@ SPORTS_URLS = {
 
 
 class ExtendedDownloader(Downloader):
+
+    def __init__(self, sport):
+        self.sport = sport.lower()
+        self.league_teams = None
 
     def _extract_abbr(self, url):
         names = url.split('/')
@@ -51,34 +61,41 @@ class ExtendedDownloader(Downloader):
         return names
 
 
-def main():
+def get_ligues(sport):
     summary = {}
-    d = ExtendedDownloader('baseball', 'AL', 'test')
+    d = ExtendedDownloader(sport)
     groups = d._get_logo_groups(
-        '{}leagues/list_by_sport/3/Basketball/logos'.format(BASE_URL))
+        '{}{}'.format(BASE_URL, SPORTS_URLS.get(sport)))
     excludes = EXCLUDES.get(d.sport)
     for g in groups:
         leagues = d._parse_logos_wrapper(g)
         for name, url in leagues.iteritems():
-            if name in excludes:
+            if excludes and name in excludes:
                 continue
             abbr = d._extract_abbr(url)
             summary[abbr] = {
                 'description': name.title(),
                 'url': url.replace(BASE_URL, '')
             }
-    pprint.pprint(summary, width=70)
+    return summary
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Display dictionary of leagues for a sport type')
     parser.add_argument('sport', help='sport type, e.g. "baseball"')
+    parser.add_argument('--readable', help='display sport leagues pairs'
+                        ' (abbr - description) in readable format',
+                        action='store_true')
     args = parser.parse_args()
     sports = SPORTS_URLS.keys()
     if args.sport not in sports:
         print ('"{}" is a wrong sport type. Sport type should be one'
                ' of the following: "{}"'.format(args.sport, ', '.join(sports)))
     else:
-        # main()
-        pass
+        ligues = get_ligues(args.sport.lower())
+        if args.readable:
+            for a, data in ligues.iteritems():
+                print u'{} - {}'.format(a, data.get('description'))
+        else:
+            pprint.pprint(ligues, width=70)
