@@ -1,4 +1,5 @@
 import re
+import argparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -136,4 +137,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('sport', help='sport type, e.g. "baseball"')
+    parser.add_argument('league', help='abbr of sport league')
+    parser.add_argument('team', help='sport team name', type=str, nargs=1)
+    parser.add_argument('-s', '--search', help='search team in league',
+                        action='store_true')
+    parser.add_argument('-p', '--path', help='save logo to a custom path',
+                        action='store', type=str, nargs=1)
+    args = parser.parse_args()
+    # main()
