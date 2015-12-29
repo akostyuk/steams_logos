@@ -4,7 +4,7 @@ import argparse
 import requests
 from bs4 import BeautifulSoup
 
-from teams import URLS as TEAMS_URLS
+from leagues import URLS as LEAGUES_URLS
 
 BASE_URL = 'http://www.sportslogos.net/'
 
@@ -25,21 +25,21 @@ class Downloader(object):
                 raise TypeError('{} must be str, e.g. \'baseball\''.format(
                     arg))
 
-        if sport.lower() not in [s.lower() for s in TEAMS_URLS.keys()]:
+        if sport.lower() not in [s.lower() for s in LEAGUES_URLS.keys()]:
             raise ValueError(
                 'sport must be one from "{}"'.format(
-                    ', '.join(TEAMS_URLS.keys())))
+                    ', '.join(LEAGUES_URLS.keys())))
         self.sport = sport.lower()
 
         if league.lower() not in [
-                l.lower() for l in TEAMS_URLS.get(self.sport).keys()]:
+                l.lower() for l in LEAGUES_URLS.get(self.sport).keys()]:
             raise ValueError('league must be one from "{}"'.format(
-                ', '.join(TEAMS_URLS.get(self.sport).keys())))
+                ', '.join(LEAGUES_URLS.get(self.sport).keys())))
         self.league = league
         self.team_name = team_name
         self.url = '{}{}'.format(
             BASE_URL,
-            TEAMS_URLS.get(self.sport).get(self.league).get('url'))
+            LEAGUES_URLS.get(self.sport).get(self.league).get('url'))
         self.league_teams = None
 
     def _get_page(self, url):
