@@ -127,23 +127,66 @@ class Downloader(object):
                 'Can not find logo link')
         return img.attrs.get('src')
 
+    def download(self, url, path=None):
+        r = requests.get(url, stream=True)
+        if not r.status_code == 200:
+            raise DownloadError('Filed to download image "{}": "{}"'.format(
+                url, r.status_code))
+        else:
+            if path:
+                save_to = path
+            else:
+                save_to = './'
+            file_to_save = '{}-{}-{}-{}'
 
-def main():
-    d = Downloader('hockey', 'KHL', 'Ak Bars Kazan')
+
+def find_team(sport, league, team_name):
+    d = Downloader(sport, league, team_name)
+    try:
+        team = d.find_team()
+        league_name = LEAGUES_URLS.get(sport).get(league).get('description')
+        print('Found: {}'.format(team_name))
+        print('league: {} ({})'.format(league_name, league))
+        print('team link: {}'.format(team))
+    except HtmlParserError:
+        print('Can not find {} team "{}" in the "{}" league'.format(
+              sport, team_name, league))
+
+
+def download(sport, league, team_name, path=None):
+    d = Downloader(sport, league, team_name)
     team_link = d.find_team()
-    print d.get_team_logos(team_link)
-    # d._get_league_teams()
-    # print d.league_teams.keys()
+    logos = d.get_team_logos(team_link)
+    primary_logo = None
+    for n, url in logos.get('primary_logos').iteritems():
+        if n.endswith('pres'):
+            primary_logo = url
+            break
+    if primary_logo is None:
+        print('Can not find main logo for "{}" team'.format(team_name))
+    else:
+        print('Main logo url: {}'.format(d.get_full_size_logo(primary_logo)))
+        d.download(primary_logo)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('sport', help='sport type, e.g. "baseball"')
     parser.add_argument('league', help='abbr of sport league')
-    parser.add_argument('team', help='sport team name', type=str, nargs=1)
+    parser.add_argument('team', help='sport team name', type=str)
     parser.add_argument('-s', '--search', help='search team in league',
                         action='store_true')
     parser.add_argument('-p', '--path', help='save logo to a custom path',
                         action='store', type=str, nargs=1)
     args = parser.parse_args()
-    # main()
+
+    # check sport
+    sports = LEAGUES_URLS.keys()
+    if args.sport not in sports:
+        print('"{}" is a wrong sport type. Sport type should be one'
+              ' of the following: "{}"'.format(args.sport, ', '.join(sports)))
+
+    if args.search:
+        find_team(args.sport, args.league, args.team)
+    else:
+        download(args.sport, args.league, args.team, args.path)
