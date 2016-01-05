@@ -127,17 +127,35 @@ class Downloader(object):
                 'Can not find logo link')
         return img.attrs.get('src')
 
-    def download(self, url, path=None):
+    def download(self, url, path=None, name=None):
+        ext = url.split('.')[-1]
+        if len(ext) > 4:
+            ext = 'jpg'
         r = requests.get(url, stream=True)
         if not r.status_code == 200:
             raise DownloadError('Filed to download image "{}": "{}"'.format(
                 url, r.status_code))
+
+        if path:
+            save_to = path
+            if not save_to.endswith('/'):
+                save_to = '{}/'.format(save_to)
         else:
-            if path:
-                save_to = path
-            else:
-                save_to = './'
-            file_to_save = '{}-{}-{}-{}'
+            save_to = './'
+
+        if name is None:
+            name = '{}-{}-{}'.format(
+                self.sport,
+                self.league.lower(),
+                self.team_name.lower().replace(' ', '-'))
+
+        file_to_save = '{}{}.{}'.format(save_to, name, ext)
+
+        # save logo
+        with open(file_to_save, 'w') as f:
+            for chunk in r.iter_content(1024):
+                f.write(chunk)
+        return file_to_save
 
 
 def find_team(sport, league, team_name):
@@ -165,8 +183,10 @@ def download(sport, league, team_name, path=None):
     if primary_logo is None:
         print('Can not find main logo for "{}" team'.format(team_name))
     else:
-        print('Main logo url: {}'.format(d.get_full_size_logo(primary_logo)))
-        d.download(primary_logo)
+        full_size_logo = d.get_full_size_logo(primary_logo)
+        print('Main logo url: {}'.format(full_size_logo))
+        saved = d.download(full_size_logo, path)
+        print('Logo has been successfully saved to the file: {}'.format(saved))
 
 
 if __name__ == "__main__":
@@ -177,7 +197,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--search', help='search team in league',
                         action='store_true')
     parser.add_argument('-p', '--path', help='save logo to a custom path',
-                        action='store', type=str, nargs=1)
+                        action='store', type=str)
     args = parser.parse_args()
 
     # check sport
