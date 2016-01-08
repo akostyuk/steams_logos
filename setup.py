@@ -23,6 +23,7 @@ setup(
     packages=['steams_logos'],
     long_description=read('README.md'),
     install_requires=reqs,
+    scripts=['bin/slogos', 'bin/slogos-helper'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Topic :: Utilities',
