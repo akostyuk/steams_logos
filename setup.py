@@ -1,12 +1,13 @@
 import os
 from setuptools import setup
 from pip.req import parse_requirements
+from pip.download import PipSession
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-install_reqs = parse_requirements('requirements.txt')
+install_reqs = parse_requirements('requirements.txt', session=PipSession)
 reqs = [str(ir.req) for ir in install_reqs]
 
 
