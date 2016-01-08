@@ -1,15 +1,15 @@
-# This is helper module with usefull functions
-#
-# - get_ligues() returns a disctionary with all available ligues for specific
-#   sport type
-#
+#!/usr/bin/env python
+
+# This is helper script returns a disctionary with all available
+# ligues for specific sport type
 
 import re
 import pprint
 import argparse
 
-from downloader import Downloader, BASE_URL, HtmlParserError
-from meta import REPLACES, EXCLUDES
+from steams_logos import Downloader
+from steams_logos.downloader import BASE_URL, HtmlParserError
+from steams_logos.meta import REPLACES, EXCLUDES
 
 SPORTS_URLS = {
     'baseball': 'leagues/list_by_sport/2/Baseball/logos',

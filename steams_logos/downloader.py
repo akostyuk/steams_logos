@@ -1,10 +1,9 @@
 import re
-import argparse
 
 import requests
 from bs4 import BeautifulSoup
 
-from leagues import URLS as LEAGUES_URLS
+from .leagues import URLS as LEAGUES_URLS
 
 BASE_URL = 'http://www.sportslogos.net/'
 
@@ -187,26 +186,3 @@ def download(sport, league, team_name, path=None):
         print('Main logo url: {}'.format(full_size_logo))
         saved = d.download(full_size_logo, path)
         print('Logo has been successfully saved to the file: {}'.format(saved))
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('sport', help='sport type, e.g. "baseball"')
-    parser.add_argument('league', help='abbr of sport league')
-    parser.add_argument('team', help='sport team name', type=str)
-    parser.add_argument('-s', '--search', help='search team in league',
-                        action='store_true')
-    parser.add_argument('-p', '--path', help='save logo to a custom path',
-                        action='store', type=str)
-    args = parser.parse_args()
-
-    # check sport
-    sports = LEAGUES_URLS.keys()
-    if args.sport not in sports:
-        print('"{}" is a wrong sport type. Sport type should be one'
-              ' of the following: "{}"'.format(args.sport, ', '.join(sports)))
-
-    if args.search:
-        find_team(args.sport, args.league, args.team)
-    else:
-        download(args.sport, args.league, args.team, args.path)

@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import argparse
+
+from steams_logos.downloader import find_team, download
+from steams_logos.leagues import URLS as LEAGUES_URLS
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('sport', help='sport type, e.g. "baseball"')
+    parser.add_argument('league', help='abbr of sport league')
+    parser.add_argument('team', help='sport team name', type=str)
+    parser.add_argument('-s', '--search', help='search team in league',
+                        action='store_true')
+    parser.add_argument('-p', '--path', help='save logo to a custom path',
+                        action='store', type=str)
+    args = parser.parse_args()
+
+    # check sport
+    sports = LEAGUES_URLS.keys()
+    if args.sport not in sports:
+        print('"{}" is a wrong sport type. Sport type should be one'
+              ' of the following: "{}"'.format(args.sport, ', '.join(sports)))
+
+    if args.search:
+        find_team(args.sport, args.league, args.team)
+    else:
+        download(args.sport, args.league, args.team, args.path)
