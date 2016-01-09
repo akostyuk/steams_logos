@@ -1,13 +1,34 @@
 import pytest
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
 from steams_logos import Downloader
 from steams_logos.downloader import (
-    DownloadError, HtmlParserError, BASE_URL, find_team)
+    DownloadError, HtmlParserError, BASE_URL, find_team, download)
 
 
 class FakeResponse(object):
+
     def __init__(self, status_code=200, content=''):
         self.status_code = status_code
         self.content = content
+
+    def iter_content(self, chunk):
+        content = list(self.content)
+        l = 0
+        while l < len(content):
+            yield ''.join(content[l:l+chunk])
+            l = l+chunk
+
+
+class NullFileHandller(object):
+
+    def __exit__(self, *args, **kwargs):
+        return self
+
+    def __enter__(self, *args, **kwargs):
+        pass
 
 
 def test_downloader_init_wrong_args_type():
@@ -25,16 +46,16 @@ def test_downloader_init_wrong_league():
         Downloader('basketball', 'fake', 'fake')
 
 
-def test_download_error(monkeypatch):
+def test_download_error_exception(monkeypatch):
     monkeypatch.setattr(
-        'requests.get', lambda x, stream: FakeResponse(status_code=404))
+        'requests.get', lambda *args, **kwargs: FakeResponse(status_code=404))
     d = Downloader('basketball', 'NBA', 'Fake Team')
     with pytest.raises(DownloadError):
         d.find_team()
 
 
 def test_html_parser_error(monkeypatch):
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse())
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse())
     d = Downloader('basketball', 'NBA', 'Fake Team')
     with pytest.raises(HtmlParserError):
         d.find_team()
@@ -42,7 +63,7 @@ def test_html_parser_error(monkeypatch):
 
 def test_parse_logos_wrapper_wrong_link(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li>no link</li></ul>'))
     logos = d._get_logo_groups()
@@ -52,7 +73,7 @@ def test_parse_logos_wrapper_wrong_link(monkeypatch):
 
 def test_parse_logos_wrapper_wrong_name(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="#"></a></li></ul>'))
     logos = d._get_logo_groups()
@@ -62,7 +83,7 @@ def test_parse_logos_wrapper_wrong_name(monkeypatch):
 
 def test_parse_logos_wrapper_link(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="/test">Fake Team</a></li></ul>'))
     logos = d._get_logo_groups()
@@ -83,7 +104,7 @@ def test_find_team_not_exist():
 
 
 def test_find_team(monkeypatch):
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="#">Fake Team</a></li></ul>'))
     d = Downloader('basketball', 'NBA', 'Fake Team')
@@ -93,7 +114,7 @@ def test_find_team(monkeypatch):
 
 def test_get_team_logos_alt_logos_none(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="#2002-2003">2002/03 - 2003/03</a></li>'
         '<li><a href="#2003-pres">2003/03 - Pres</a></li>'
@@ -104,7 +125,7 @@ def test_get_team_logos_alt_logos_none(monkeypatch):
 
 def test_get_team_logos(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="#2002-2003">2002/03 - 2003/03</a></li>'
         '<li><a href="#2003-pres">2003/03 - Pres</a></li>'
@@ -121,7 +142,7 @@ def test_get_team_logos(monkeypatch):
 
 def test_get_full_size_logo_id_not_exist(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<div><img src="fake_team_url"></div>'))
     with pytest.raises(HtmlParserError):
         d.get_full_size_logo('#')
@@ -129,7 +150,7 @@ def test_get_full_size_logo_id_not_exist(monkeypatch):
 
 def test_get_full_size_logo_img_not_exist(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<div id="mainLogo"></div>'))
     with pytest.raises(HtmlParserError):
         d.get_full_size_logo('#')
@@ -137,14 +158,14 @@ def test_get_full_size_logo_img_not_exist(monkeypatch):
 
 def test_get_full_size_logo(monkeypatch):
     d = Downloader('basketball', 'NBA', 'Fake Team')
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<div id="mainLogo"><img src="fake_team_url"></div>'))
     l = d.get_full_size_logo('#')
     assert l == 'fake_team_url'
 
 
 def test_find_team_not_exist_func(monkeypatch, capsys):
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="#"></a></li></ul>'))
     find_team('basketball', 'NBA', 'Fake Team')
@@ -153,12 +174,58 @@ def test_find_team_not_exist_func(monkeypatch, capsys):
 
 
 def test_find_team_func(monkeypatch, capsys):
-    monkeypatch.setattr('requests.get', lambda x, stream: FakeResponse(
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
         content='<ul class="logoWall">'
         '<li><a href="#">Fake Team</a></li></ul>'))
     find_team('basketball', 'NBA', 'Fake Team')
     out, err = capsys.readouterr()
     assert out.startswith('Found:')
 
-# def test_find_team_not_exist_func():
-#     pass
+
+def test_download_error(monkeypatch):
+    monkeypatch.setattr(
+        'requests.get', lambda *args, **kwargs: FakeResponse(status_code=404))
+    d = Downloader('basketball', 'NBA', 'Fake Team')
+    with pytest.raises(DownloadError):
+        d.download('/fake')
+
+
+def test_download_path(monkeypatch, tmpdir):
+    p = tmpdir.mkdir('sub')
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
+        content='fake image'))
+    d = Downloader('basketball', 'NBA', 'Fake Team')
+    downloaded = d.download('/fake.jpg', path=str(p))
+    assert downloaded.endswith('sub/basketball-nba-fake-team.jpg')
+
+
+def test_download_no_path(monkeypatch):
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
+        content='fake image'))
+    d = Downloader('basketball', 'NBA', 'Fake Team')
+    monkeypatch.setattr(
+        builtins, 'open', lambda *args, **kwargs: NullFileHandller())
+    downloaded = d.download('/fake.jpg')
+    assert downloaded.endswith('basketball-nba-fake-team.jpg')
+
+
+def test_download_primary_not_exist_func(monkeypatch, capsys):
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
+        content='<ul class="logoWall">'
+        '<li><a href="#">Fake Team</a></li></ul>'))
+    download('basketball', 'NBA', 'Fake Team')
+    out, err = capsys.readouterr()
+    assert out.startswith('Can not find main logo for')
+
+
+def test_download_primary_exist_func(monkeypatch, capsys):
+    monkeypatch.setattr('requests.get', lambda *args, **kwargs: FakeResponse(
+        content='<ul class="logoWall">'
+        '<li><a href="#">Fake Team</a></li>'
+        '<li><a href="#2003-pres">2003/03 - Pres</a></li></ul>'
+        '<div id="mainLogo"><img src="fake_team_url"></div>'))
+    monkeypatch.setattr(
+        builtins, 'open', lambda *args, **kwargs: NullFileHandller())
+    download('basketball', 'NBA', 'Fake Team')
+    out, err = capsys.readouterr()
+    assert out.startswith('Main logo url')
