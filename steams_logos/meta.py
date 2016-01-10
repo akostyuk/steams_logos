@@ -1,68 +1,18 @@
+import os
+import json
+
+
+def load_from_json(item):
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                        'data.json')
+    with open(path) as json_data:
+        data = json.load(json_data)
+    return data.get(item, {})
+
 # abbreviation replacements
 
-REPLACES = {
-    'baseball': {
-        'Korean_KBO': 'KKBO',
-        'Japanese_NPB': 'JNPB',
-        'Can-Am_': 'CAL',
-    },
-    'basketball': {
-        'NBA_D-League': 'NBADL',
-        'NBL-Aus': 'NBLAUS',
-        'NBL_Canada': 'NBACAN',
-    },
-    'hockey': {
-        'Sweden_SEL': 'SELSWE',
-        'Finnish_SMliiga': 'SMLIIGAFIN',
-        'Aus-HL': 'HLAUT',
-        'German_DEL': 'DELDEU',
-        'British_EIHL': 'EIHLGBR',
-        'Czech_ELH': 'ELHCZE',
-        'Mestis': 'MESTISFIN',
-        'Swiss_NLA': 'NLACHE',
-        'Russia_VHL': 'VHLRUS',
-        'Slovak_Ex-Liga': 'EXLSVK',
-    },
-    'football': {
-        'Arena_FL': 'FLARENA',
-        'LFL_Canada': 'LFLCAN',
-    },
-    'soccer': {
-        'World_Cup': 'FIFAWCUP',
-        'Swedish_Soccer': 'ALLSWE',
-        'S-liga': 'SLDNK',
-        'Dutch_Eredivise': 'DERDVSNLD',
-        'European_Clubs': 'ECT',
-        'French_Ligue_1': 'L1FRA',
-        'Czech_Gambrinus': 'GAMBCZE',
-        'German_Liga': 'GLDEU',
-        'Italian_Serie_A': 'SERAITA',
-        'Latvian_Higher_League_Virslga': 'LHLLVA',
-        'Portuguese_Primeira_Liga': 'PPLPRT',
-        'Coatian_PrvaHNL': 'CPHNLHRV',
-        'RPL': 'RPLRUS',
-        'Spanish_La_Liga': 'SLLESP',
-        'UPL': 'UPLUKR',
-        'Veikkausliiga_Finland': 'VFIN',
-        'Mexican_Primera': 'MPDMEX',
-        'NASL_2011': 'NASL',
-        'USL_PDL': 'USLPDL',
-        'USL_Pro': 'USLPRO',
-        'USSF_Div_2': 'USSFD2L',
-        'Brazil_CBF': 'CBFBRA',
-        'S._America_Clubs': 'SAC',
-        'NZ_ASB': 'ASBNZL',
-        'Aussie_A-League': 'ALAUS',
-        'China_CSL': 'CSLCHN',
-        'Korean_K-League': 'KLKOR',
-    }
-}
+REPLACES = load_from_json('replaces')
 
 # exclude leagues without teams
 
-EXCLUDES = {
-    'baseball': [
-        'major league baseball',
-        'minor league baseball',
-    ]
-}
+EXCLUDES = load_from_json('excludes')
