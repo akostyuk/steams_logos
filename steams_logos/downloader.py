@@ -175,7 +175,7 @@ def download(sport, league, team_name, path=None):
     team_link = d.find_team()
     logos = d.get_team_logos(team_link)
     primary_logo = None
-    for n, url in logos.get('primary_logos').iteritems():
+    for n, url in logos.get('primary_logos').items():
         if n.endswith('pres'):
             primary_logo = url
             break
