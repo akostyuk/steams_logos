@@ -6,6 +6,7 @@ This is simple sport teams logo extraction tool from http://www.sportslogos.net/
 
 Requirements
 ------------
+* Python 2.7, 3.4 or 3.5
 * requests
 * beautifulsoup4
 
